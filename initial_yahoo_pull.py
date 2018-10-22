@@ -16,9 +16,10 @@ if __name__=="__main__":
     git_dir = Path.cwd()
     json_dir = git_dir / 'JSON_data'
     creds_file = json_dir / 'oauth_creds.json'
+    league_file = json_dir / 'master_league_data.json'
 
     no_rest_for_fleury = Yahoo_Data(league_url, base_url, creds_file)
     no_rest_for_fleury.get_scoring_categories(league_url)
     no_rest_for_fleury.teams = no_rest_for_fleury.get_league_teams(league_url)
 
-    no_rest_for_fleury.dump_league_data(json_dir, 'master_league_data.json')
+    no_rest_for_fleury.dump_league_data(league_file)

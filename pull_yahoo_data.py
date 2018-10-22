@@ -7,9 +7,10 @@ class Yahoo_Data():
         self.oauth = self.get_oauth_session("http://fantasysports.yahooapis.com/", creds_file)
         self.league = {'league info': self.get_league_data(league_url)}
         self.teams = None
-        self.current_week = None
+        self.current_week = self.get_current_week()
         self.league_url = league_url
         self.fantasy_url = fantasy_url
+        #self.query_week = None
 
     # utilizing yahoo-oauth api
     def get_oauth_session(self, url, creds_file):
@@ -77,6 +78,7 @@ class Yahoo_Data():
             # default week = None gets current week's rosters
             if week:
                 roster_url += ";week={}".format(week)
+                #self.query_week = week
             response = self.oauth.session.get(roster_url, params={'format': 'json'})
             players_json = json.dumps(response.json(), indent = 4)
             players_object = json.loads(players_json)
@@ -116,54 +118,124 @@ class Yahoo_Data():
 
         self.league['scoring categories'] = scoring_categories
 
-    def get_current_week(self, league_url):
-        response = self.oauth.session.get(league_url + "/settings", params={'format': 'json'})
+    def get_current_week(self):
+        return self.league['league info']['current_week']
+        # response = self.oauth.session.get(league_url + "/settings", params={'format': 'json'})
+        #
+        # settings_json = json.dumps(response.json(), indent=4)
+        # settings_object = json.loads(settings_json)
+        # print(settings_object)
+        # return settings_object['fantasy_content']['leagues']['0']['league'][0]['current_week']
 
-        settings_json = json.dumps(response.json(), indent=4)
-        settings_object = json.loads(settings_json)
-        print(settings_object)
-        return settings_object['fantasy_content']['leagues']['0']['league'][0]['current_week']
+    # def get_week_data(self, json_directory, week_json):
+    #     with open(week_json, "r") as read_file:
+    #         week_object = json.load(read_file)
 
-    def dump_week_data(self, json_directory, week_file):
-        week_json = json_directory / week_file
-        week_object = {}
+    def write_json(self, python_object, json_file):
+        with open(json_file, "w") as write_file:
+            json.dump(python_object, write_file, indent=4)
 
-        # beginning of season
-        if not week_json.exists():
-            print("Creating league's week information...")
-            week_json.touch()
-            week_object['last week'] = 0
-            week_object['current week'] = 1
+    def read_json(self, json_file):
+        with open(json_file, "r") as read_json:
+            return json.load(read_json)
 
-        # if week object already exists, we're mid-season.
-        # set stored current week to last week, and set this week to get_current_week's return value
-        else:
-            print("Updating week info...")
+    # def load_week_data(self, week_json):
+    #     if not week_json.exists():
+    #         print("{} not found. Run Self.dump_week_data to initialize a json file".format(week_json))
+    #         exit(1)
+    #     return self.read_json(week_json)
+    #
+    # # this only needs to be used for automated data pulls, so that long weeks don't overwrite previous week roster data
+    # def dump_week_data(self, week_json, last_week=None, this_week=None):
+    #     week_object = {}
+    #
+    #     if not week_json.exists():
+    #         week_json.touch()
+    #         week_object['last week'] = 0
+    #     else:
+    #         week_object = self.load_week_data(week_json)
+    #         week_object['last week'] = week_object['this week']
+    #
+    #     # update last week's info with current week's info
+    #     # the key here is grabbing current week from server to account for long weeks.
+    #     week_object['this week'] = self.get_current_week()
+    #
+    #     self.write_json(week_object, week_json)
 
-            # load in last week's information
-            with open(week_json, "r") as read_file:
-                week_object = json.load(read_file)
+        # if not week_json.exists():
+        #     print("Creating league's week information...")
+        #     week_json.touch()
+        #     # default to beginning of season
+        #     if not last_week:
+        #         week_object['last week'] = 0
+        #     if not this_week:
+        #         week_object['this week'] = 1
+        #
+        # else:
+        #     print("Updating week info...")
+        #     week_object = self.load_week_data(week_json)
+        #
+        #     # update last week's info with current week's info
+        #     # the key here is grabbing current week from server to account for long weeks.
+        #     week_object['last week'] = week_object['this week'] if last_week=None else week_object['last week'] = last_week
+        #     week_object['this week'] = self.get_current_week() if this_week=None else week_object['this week'] = this_week
 
-            # update last week's info with current week's info
-            week_object['last week'] = week_object['current week']
-            week_object['current week'] = self.get_current_week(self.league_url)
-
-        # dump current week's data into json file
-        with open(week_json, "w") as write_file:
-            json.dump(week_object, write_file, indent=4)
-
-        return week_object
-
-    def dump_league_data(self, json_directory, league_file):
-        league_json = json_directory / league_file
+    def dump_league_data(self, league_json):
+        # overwrites any previous league information stored.
         league_json.touch()
 
         league_object = {}
         league_object.update(self.league)
         league_object['teams'] = self.teams
 
-        with open(league_json, "w") as write_file:
-            json.dump(league_object, write_file, indent=4)
+        self.write_json(league_object, league_json)
+
+    def load_roster_data(self, roster_json):
+        if not roster_json.exists():
+            print("{} not found. Run Self.dump_roster_data to initialize a json file".format(roster_json))
+            exit(1)
+        return self.read_json(roster_json)
+
+    def dump_roster_data(self, roster_json, week, weekly_roster_object):
+        roster_object = {}
+        if not roster_json.exists():
+            roster_json.touch()
+        else:
+            roster_object = self.read_json(roster_json)
+
+        roster_object[week] = weekly_roster_object
+        self.write_json(roster_object, roster_json)
+
+        # # for automated weekly pulls
+        # if automated:
+        #     if not week_json:
+        #         print("Need to specify the week json file to compare with last week")
+        #         exit(1)
+        #     week_object = self.load_week_data(week_json)
+        #     if week_object['last week'] == week_object['this week']:
+        #         # assuming since we're in automation stream that a roster has been saved for last week
+
+
+    #
+    # def dump_weekly_roster_data(self, json_directory, roster_json, week_object):
+    #     roster_object = {}
+    #     current_week =
+    #     # week 1
+    #     if not roster_json.exists():
+    #         roster_json.touch()
+    #         week = 'week 1'
+    #
+    #     else:
+    #         with open(roster_json, "r") as read_file:
+    #             roster_object = json.load(read_file)
+    #         # if last week is the same as this week, we need to add updated rosters as another entry
+    #         if week_object['last week'] == week_object['current week']:
+    #             roster_object["week {}a".format(week_object['current week'])] = {}
+    #         else:
+    #             week = week_object['current week']
+    #     roster_object[week] = {}
+    #     roster_object[week]['teams'] = self.teams
+
 
 if __name__=="__main__":
     league_url = 'https://fantasysports.yahooapis.com/fantasy/v2/leagues;league_keys=nhl.l.8681'
@@ -182,7 +254,7 @@ if __name__=="__main__":
     # print(cred)
     no_rest_for_fleury = Yahoo_Data(league_url, base_url, creds_file)
     #print(no_rest_for_fleury.league)
-    no_rest_for_fleury.current_week = no_rest_for_fleury.get_current_week(league_url)
+    no_rest_for_fleury.current_week = no_rest_for_fleury.get_current_week()
     no_rest_for_fleury.get_scoring_categories(league_url)
     #
     # print("** ** ** ** ** ** ** ** ** ** ** ** ** ** TEAMS ** ** ** ** ** ** ** ** ** ** ** ** ** ** * ")
