@@ -1,7 +1,6 @@
-from yahoo_oauth import OAuth2
-import json
 from pathlib import Path
-from pull_yahoo_data import Yahoo_Data
+from pull_yahoo_data import Yahoo_League_Data
+from json_interface import Json_Interface
 
 ############
 # For the initial pull, we need to get anything that won't change over the course of the season
@@ -18,8 +17,9 @@ if __name__=="__main__":
     creds_file = json_dir / 'oauth_creds.json'
     league_file = json_dir / 'master_league_data.json'
 
-    no_rest_for_fleury = Yahoo_Data(league_url, base_url, creds_file)
-    no_rest_for_fleury.get_scoring_categories(league_url)
-    no_rest_for_fleury.teams = no_rest_for_fleury.get_league_teams(league_url)
+    no_rest_for_fleury = Yahoo_League_Data(league_url, base_url, creds_file)
+    no_rest_for_fleury.league['scoring categories'] = no_rest_for_fleury.parse_raw_scoring_categories()
+    no_rest_for_fleury.teams = no_rest_for_fleury.parse_raw_league_teams()
 
-    no_rest_for_fleury.dump_league_data(league_file)
+    my_json = Json_Interface(json_dir)
+    my_json.league_dump_to_json(no_rest_for_fleury, league_file)
