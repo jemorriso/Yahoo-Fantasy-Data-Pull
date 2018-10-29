@@ -3,11 +3,14 @@ from json_interface import Json_Interface
 from pathlib import Path
 import requests
 from pull_yahoo_data import Yahoo_League_Data
+import datetime
 
 class NHL_Data(Yahoo_League_Data):
     def __init__(self, league_url, fantasy_url, creds_file):
         Yahoo_League_Data.__init__(self, league_url, fantasy_url, creds_file)
         self.NHL_teams = None
+        self.NHL_base_url = "https://statsapi.web.nhl.com/api/v1/"
+
 
     def get_player_id(self, player):
 
@@ -30,21 +33,33 @@ class NHL_Data(Yahoo_League_Data):
         for player_info in roster:
             if player_info['person']['fullName'] == player:
                 self.players[player]['NHL id'] = player_info['person']['id']
+                #print(f"player: {player}\nid: {self.players[player]['NHL id']}")
                 return
         #print(f"{player} NOT FOUND!!!")
 
 
-    # need to run this first time program is run to get all the player ids
-    def mass_parse_player_ids(self, week=None):
-        week = 'week {}'.format(week if week else self.current_week)
+    # run this weekly to fill in missing player IDs
+    # avoids querying each NHL team roster each week
+    # needs to be called after update_NHL_teams_starters
+    # better to run this on NHL teams rather than fantasy teams
+    # so that if there are multiple players on a team that don't have id, only one request necessary
+    def check_for_player_ids(self, date=None):
+        if not date:
+            date = self.current_date
+        week = '{}'.format(self.get_week(date))
+        team_object = None
 
         for team in self.NHL_teams:
-            team_object = self.parse_NHL_roster_dump(self.NHL_teams[team]['team id'])
             for player in self.NHL_teams[team][week]:
-                self.parse_player_id(player, team_object)
-                #print(f"player: {player}      id: {self.players[player]['NHL id']}")
-                pass
-            pass
+                # get the roster dump only for the first player on the team that needs an ID
+                if 'NHL id' not in self.players[player] and not team_object:
+                    team_object = self.parse_NHL_roster_dump(self.NHL_teams[team]['team id'])
+                    #print(f"week: {week}")
+                    self.parse_player_id(player, team_object)
+                elif 'NHL id' not in self.players[player]:
+                    #print(f"week: {week}")
+                    self.parse_player_id(player, team_object)
+            team_object = None
 
 
     def parse_NHL_roster_dump(self, id):
@@ -55,8 +70,10 @@ class NHL_Data(Yahoo_League_Data):
 
 
     # each week, need to update list of starters, for each NHL team.
-    def update_NHL_teams_starters(self, week=None):
-        week = 'week {}'.format(week if week else self.current_week)
+    def update_NHL_teams_starters(self, date=None):
+        if not date:
+            date = self.current_date
+        week = '{}'.format(self.get_week(date))
         NHL_starters = self.NHL_teams
         for NHL_team in NHL_starters:
             NHL_starters[NHL_team][week] = {}
@@ -84,13 +101,22 @@ class NHL_Data(Yahoo_League_Data):
 
         return teams
 
+    def parse_raw_boxscore(self, game_id):
+        game_url = self.NHL_base_url + "/game/{}/boxscore".format(game_id)
+        r = requests.get(game_url)
+        game_json = json.dumps(r.json(), indent=4)
+        game_object = json.loads(game_json)
+        pass
 
-    # # initial call sets NHL team's players for all starting players on each yahoo roster
-    # def set_NHL_team_rosters(self, week=None):
-    #     for fantasy_team in self.fantasy_teams[week]:
-    #         for player in self.fantasy_teams[week][fantasy_team]['players']['starters'].keys():
-    #            NHL_team = self.fantasy_teams[week][fantasy_team]['players']['starters'][player]['NHL team']
-    #            self.NHL_teams[NHL_team]['current starters'][player]={'player id': None, 'fantasy team': fantasy_team}
+
+    def parse_raw_daily_schedule(self, date=None):
+        schedule_url = self.NHL_base_url + "/schedule"
+        if date:
+            schedule_url += "?date={}".format(date)
+        r = requests.get(schedule_url)
+        schedule_json = json.dumps(r.json(), indent=4)
+        schedule_object = json.loads(schedule_json)
+        pass
 
 
 if __name__ == "__main__":

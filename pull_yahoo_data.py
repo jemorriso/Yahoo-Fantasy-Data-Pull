@@ -2,6 +2,7 @@ from yahoo_oauth import OAuth2
 import json
 from pathlib import Path
 import subprocess
+import datetime
 
 class Yahoo_League_Data():
     def __init__(self, league_url, fantasy_url, creds_file):
@@ -9,7 +10,18 @@ class Yahoo_League_Data():
         self.league = {'league info': self.parse_raw_league_data(league_url)}
         self.league_url = league_url
         self.fantasy_url = fantasy_url
-        self.current_week = self.league['league info']['current_week']
+
+        # set start to usual Monday, rather than Wednesday
+        self.start_date = datetime.datetime.strptime(self.league['league info']['start_date'], "%Y-%m-%d").date() - datetime.timedelta(days=2)
+        self.end_date = datetime.datetime.strptime(self.league['league info']['end_date'], "%Y-%m-%d").date()
+
+        # note: Some 'weeks' are longer than  7 days, since it is based on the matchup.
+        #self.current_week = self.league['league info']['current_week']
+        #self.num_weeks = self.league['league info']['end_week']
+        self.weekly_start_dates = self.set_weekly_start_dates(self.start_date, self.end_date)
+
+        # every session should have a current date since the day could roll over in the middle of execution
+        self.current_date = datetime.date.today()
 
         # teams updated after object creation - can edit this?? Overloading constructors
         self.teams = {}
@@ -24,6 +36,43 @@ class Yahoo_League_Data():
             oauth.refresh_access_token()
 
         return oauth
+
+    # allows for queries to be made anytime during the week
+    def get_week(self, date):
+        sorted_weeks = sorted(self.weekly_start_dates)
+        for start_date in sorted_weeks:
+            if date < start_date:
+                date += datetime.timedelta(days=7)
+            else:
+                day_of_week = date.weekday()
+                return self.weekly_start_dates[date - datetime.timedelta(days=day_of_week)]
+
+    # Can't find schedule info in API, so just hard code long weeks
+    # Yahoo week 1 actually starts on Weds, but here have it start on usual Monday for convenience.
+    def set_weekly_start_dates(self, start_date, end_date):
+        weekly_start_dates = {}
+        my_date = start_date
+        my_week = 2
+
+        long_weeks = {
+                        datetime.datetime(2018, 10, 1).date(): 'week 1.a',
+                        datetime.datetime(2018, 10, 8).date(): 'week 1.b',
+                        datetime.datetime(2019, 1, 21).date(): 'week 16.a',
+                        datetime.datetime(2019, 1, 28).date(): 'week 16.b',
+                    }
+
+        while my_date < end_date:
+            if my_date in long_weeks:
+                weekly_start_dates[my_date] = long_weeks[my_date]
+            else:
+                weekly_start_dates[my_date] = 'week {}'.format(my_week)
+                my_week += 1
+                if my_week == 16:
+                    my_week += 1
+            my_date += datetime.timedelta(days=7)
+            pass
+
+        return weekly_start_dates
 
 
     def parse_raw_league_data(self, url):
@@ -123,19 +172,21 @@ class Yahoo_League_Data():
 
     # return the players that on each team, storing them as sublists for each team in Yahoo_Data teams attribute
     # efficient to only make one query for each roster, so here we also update the master player list.
-    def parse_raw_fantasy_rosters(self, week=None):
+    def parse_raw_fantasy_rosters(self, date=None):
         # cycle through each team and grab their players
+        if not date:
+            date = self.current_date
         for team in self.teams:
             roster_url = self.fantasy_url + "/teams;team_keys={}/roster".format(self.teams[team]['yahoo key'])
-            # default week = None gets current week's rosters
-            if week:
-                roster_url += ";week={}".format(week)
+            roster_url += ";date={}".format(date.strftime("%Y-%m-%d"))
+
             response = self.oauth.session.get(roster_url, params={'format': 'json'})
             players_json = json.dumps(response.json(), indent = 4)
             players_object = json.loads(players_json)
             players_object = players_object['fantasy_content']['teams']['0']['team'][1]['roster']['0']['players']
 
-            self.teams[team]['week {}'.format(week if week else self.current_week)] = self.update_roster_and_player_data(team, players_object)
+            self.teams[team][self.get_week(date)] = self.update_roster_and_player_data(team, players_object)
+            pass
             # bench includes IR players
 
 
