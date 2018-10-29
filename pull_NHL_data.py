@@ -5,6 +5,7 @@ import requests
 from pull_yahoo_data import Yahoo_League_Data
 import datetime
 
+
 class NHL_Data(Yahoo_League_Data):
     def __init__(self, league_url, fantasy_url, creds_file):
         Yahoo_League_Data.__init__(self, league_url, fantasy_url, creds_file)
@@ -18,11 +19,18 @@ class NHL_Data(Yahoo_League_Data):
         roster = team_object['roster']['roster']
         for player_info in roster:
             if player_info['person']['fullName'] == player:
-                self.players[player]['NHL id'] = player_info['person']['id']
+                return player_info['person']['id']
                 #print(f"player: {player}\nid: {self.players[player]['NHL id']}")
-                return
+
         #print(f"{player} NOT FOUND!!!")
 
+
+    def parse_raw_player_attributes(self, id, player):
+        r = requests.get("https://statsapi.web.nhl.com/api/v1/people/{}".format(id))
+        attr_json = json.dumps(r.json(), indent=4)
+        attr_object = json.loads(attr_json)
+        print("updating player info ..... {}".format(player))
+        return attr_object['people'][0]
 
     # run this weekly to fill in missing player IDs
     # avoids querying each NHL team roster each week
@@ -41,10 +49,15 @@ class NHL_Data(Yahoo_League_Data):
                 if 'NHL id' not in self.players[player] and not team_object:
                     team_object = self.parse_NHL_roster_dump(self.NHL_teams[team]['team id'])
                     #print(f"week: {week}")
-                    self.parse_player_id(player, team_object)
+                    self.players[player]['NHL id'] = self.parse_player_id(player, team_object)
                 elif 'NHL id' not in self.players[player]:
                     #print(f"week: {week}")
-                    self.parse_player_id(player, team_object)
+                    self.players[player]['NHL id'] = self.parse_player_id(player, team_object)
+
+                # for starting players, we also want to get their personal info
+                if 'attributes' not in self.players[player]:
+                    self.players[player]['attributes'] = self.parse_raw_player_attributes(self.players[player]['NHL id'], player)
+                    pass
             team_object = None
 
 
@@ -57,6 +70,7 @@ class NHL_Data(Yahoo_League_Data):
 
     # each week, need to update list of starters, for each NHL team.
     def update_NHL_teams_starters(self, date=None):
+        print("Updating NHL teams weekly starters.....")
         if not date:
             date = self.current_date
         week = '{}'.format(self.get_week(date))
@@ -93,7 +107,7 @@ class NHL_Data(Yahoo_League_Data):
         for player in weekly_active_players:
             print(player)
             id = self.players[player]['NHL id']
-            #fantasy_team = self.teams['fantasy team']
+            fantasy_team = self.players[player]['fantasy team']
 
             if 'ID{}'.format(id) not in roster or id in team_object['scratches']:
                 continue

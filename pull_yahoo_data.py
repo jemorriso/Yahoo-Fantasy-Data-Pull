@@ -166,6 +166,9 @@ class Yahoo_League_Data():
             self.players[player]['NHL team'] = self.get_players_NHL_team(player_info)
             self.players[player]['eligible positions'] = self.get_players_eligible_positions(player_info)
 
+        # the player has been traded (fantasy) or dropped and added to a different team.
+        elif self.players[player]['fantasy team'] != fantasy_team:
+            self.players[player]['fantasy team'] = fantasy_team
 
     def update_roster_and_player_data(self, fantasy_team, players_object):
         roster = {'starters': {}, 'bench': {}}
@@ -186,6 +189,7 @@ class Yahoo_League_Data():
     # efficient to only make one query for each roster, so here we also update the master player list.
     def parse_raw_fantasy_rosters(self, date=None):
         # cycle through each team and grab their players
+        print("Parsing weekly roster data.....")
         if not date:
             date = self.current_date
         for team in self.teams:

@@ -33,18 +33,24 @@ def get_NHL(no_rest_for_fleury):
     no_rest_for_fleury = my_json.restore_league_from_json(no_rest_for_fleury, league_json, NHL=True)
     no_rest_for_fleury.NHL_teams = no_rest_for_fleury.parse_raw_NHL_teams()
 
+    my_date = no_rest_for_fleury.start_date
     current_date = datetime.date.today()
 
     query_dates = sorted(no_rest_for_fleury.weekly_start_dates)
-    for date in query_dates:
-        date_object = no_rest_for_fleury.string_to_date(date)
-        if date_object > current_date:
+    while my_date < current_date:
+        print(my_date)
+        if no_rest_for_fleury.date_to_string(my_date) in query_dates:
+            no_rest_for_fleury.parse_raw_fantasy_rosters(my_date)
+            no_rest_for_fleury.update_NHL_teams_starters(my_date)
+            no_rest_for_fleury.check_for_player_ids(my_date)
+        no_rest_for_fleury.parse_raw_daily_schedule(my_date)
+
+        my_date += datetime.timedelta(days=1)
+        if my_date > current_date:
             break
-        print(date)
-        no_rest_for_fleury.update_NHL_teams_starters(date_object)
-        no_rest_for_fleury.check_for_player_ids(date_object)
-        my_json.league_dump_to_json(no_rest_for_fleury, league_json, NHL=True)
-        pass
+
+    my_json.league_dump_to_json(no_rest_for_fleury, league_json, NHL=True)
+    pass
 
 
 def get_yahoo(no_rest_for_fleury):
@@ -88,10 +94,10 @@ if __name__=="__main__":
     my_json = Json_Interface(json_dir)
 
     no_rest_for_fleury = Yahoo_League_Data(league_url, base_url, creds_json)
-    #initial_yahoo_pull(no_rest_for_fleury)
+    initial_yahoo_pull(no_rest_for_fleury)
     #get_yahoo(no_rest_for_fleury)
 
     no_rest_for_fleury = NHL_Data(league_url, base_url, creds_json)
-    #get_NHL(no_rest_for_fleury)
+    get_NHL(no_rest_for_fleury)
 
-    test_schedule_and_boxscore(no_rest_for_fleury)
+    #test_schedule_and_boxscore(no_rest_for_fleury)
