@@ -8,6 +8,7 @@ class Json_Interface():
     def league_dump_to_json(self, fantasy_league, league_json, NHL=False):
         league_object = {}
         league_object['league name'] = fantasy_league.league['league info']['name']
+        league_object['weekly starting dates'] = fantasy_league.weekly_start_dates
         league_object.update(fantasy_league.league)
         league_object['teams'] = fantasy_league.teams
         if fantasy_league.players:
@@ -23,6 +24,7 @@ class Json_Interface():
     def restore_league_from_json(self, fantasy_league, league_json, NHL=False):
         league_object = self.read_json(league_json)
         fantasy_league.league['scoring categories'] = league_object['scoring categories']
+        fantasy_league.weekly_start_dates = league_object['weekly starting dates']
         fantasy_league.teams = league_object['teams']
         if 'players' in league_object:
             fantasy_league.players = league_object['players']

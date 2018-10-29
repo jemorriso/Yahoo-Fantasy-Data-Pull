@@ -12,16 +12,14 @@ class Yahoo_League_Data():
         self.fantasy_url = fantasy_url
 
         # set start to usual Monday, rather than Wednesday
-        self.start_date = datetime.datetime.strptime(self.league['league info']['start_date'], "%Y-%m-%d").date() - datetime.timedelta(days=2)
-        self.end_date = datetime.datetime.strptime(self.league['league info']['end_date'], "%Y-%m-%d").date()
-
-        # note: Some 'weeks' are longer than  7 days, since it is based on the matchup.
-        #self.current_week = self.league['league info']['current_week']
-        #self.num_weeks = self.league['league info']['end_week']
-        self.weekly_start_dates = self.set_weekly_start_dates(self.start_date, self.end_date)
+        self.start_date = self.string_to_date(self.league['league info']['start_date']) - datetime.timedelta(days=2)
+        self.end_date = self.string_to_date(self.league['league info']['end_date'])
 
         # every session should have a current date since the day could roll over in the middle of execution
         self.current_date = datetime.date.today()
+
+        # clean up below
+        self.weekly_start_dates = {}
 
         # teams updated after object creation - can edit this?? Overloading constructors
         self.teams = {}
@@ -37,35 +35,46 @@ class Yahoo_League_Data():
 
         return oauth
 
+
+    def date_to_string(self, date):
+        return date.strftime("%Y-%m-%d")
+
+    def string_to_date(self, string):
+        return datetime.datetime.strptime(string, "%Y-%m-%d").date()
+
+
     # allows for queries to be made anytime during the week
     def get_week(self, date):
         sorted_weeks = sorted(self.weekly_start_dates)
         for start_date in sorted_weeks:
-            if date < start_date:
+            if date < self.string_to_date(start_date):
                 date += datetime.timedelta(days=7)
             else:
                 day_of_week = date.weekday()
-                return self.weekly_start_dates[date - datetime.timedelta(days=day_of_week)]
+                return self.weekly_start_dates[self.date_to_string(date - datetime.timedelta(days=day_of_week))]
+
 
     # Can't find schedule info in API, so just hard code long weeks
     # Yahoo week 1 actually starts on Weds, but here have it start on usual Monday for convenience.
+    # I have to store keys as strings rather than dates for JSON.
     def set_weekly_start_dates(self, start_date, end_date):
         weekly_start_dates = {}
         my_date = start_date
         my_week = 2
 
         long_weeks = {
-                        datetime.datetime(2018, 10, 1).date(): 'week 1.a',
-                        datetime.datetime(2018, 10, 8).date(): 'week 1.b',
-                        datetime.datetime(2019, 1, 21).date(): 'week 16.a',
-                        datetime.datetime(2019, 1, 28).date(): 'week 16.b',
+                        "2018-10-01": 'week 1.a',
+                        "2018-10-08": 'week 1.b',
+                        "2019-01-21": 'week 16.a',
+                        "2019-01-28": 'week 16.b'
                     }
 
         while my_date < end_date:
-            if my_date in long_weeks:
-                weekly_start_dates[my_date] = long_weeks[my_date]
+            my_date_string = self.date_to_string(my_date)
+            if my_date_string in long_weeks:
+                weekly_start_dates[my_date_string] = long_weeks[my_date_string]
             else:
-                weekly_start_dates[my_date] = 'week {}'.format(my_week)
+                weekly_start_dates[my_date_string] = 'week {}'.format(my_week)
                 my_week += 1
                 if my_week == 16:
                     my_week += 1
@@ -120,6 +129,9 @@ class Yahoo_League_Data():
                 if 'editorial_team_full_name' in dict.keys():
                     players_team = dict['editorial_team_full_name']
                     break
+        # convert to NHL spelling
+        if players_team == 'Montreal Canadiens':
+            players_team = 'Montréal Canadiens'
         return players_team
 
 
@@ -178,7 +190,7 @@ class Yahoo_League_Data():
             date = self.current_date
         for team in self.teams:
             roster_url = self.fantasy_url + "/teams;team_keys={}/roster".format(self.teams[team]['yahoo key'])
-            roster_url += ";date={}".format(date.strftime("%Y-%m-%d"))
+            roster_url += ";date={}".format(self.date_to_string(date))
 
             response = self.oauth.session.get(roster_url, params={'format': 'json'})
             players_json = json.dumps(response.json(), indent = 4)

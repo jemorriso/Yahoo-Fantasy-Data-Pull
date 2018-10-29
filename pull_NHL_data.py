@@ -12,20 +12,6 @@ class NHL_Data(Yahoo_League_Data):
         self.NHL_base_url = "https://statsapi.web.nhl.com/api/v1/"
 
 
-    def get_player_id(self, player):
-
-        # now is time to learn how to use grep and bash to process this JSON efficiently!! Use that saved bookmark
-        for id in self.NHL_teams.keys():
-            r = requests.get("https://statsapi.web.nhl.com/api/v1/teams/{}?expand=team.roster".format(id))
-            team_json = json.dumps(r.json(), indent=4)
-            print(team_json)
-            team_object = json.loads(team_json)
-            team_object = team_object[0]['id']
-            # for
-            # if player
-
-        pass
-
     # We should not be duplicating data! I need to make a master player list
     # this will be helpful for seeing if a trade has happened
     def parse_player_id(self, player, team_object):
@@ -93,30 +79,67 @@ class NHL_Data(Yahoo_League_Data):
         teams_object = json.loads(teams_json)
 
         for i, team in enumerate(teams_object['teams']):
-            # yahoo does not use accent on e in Montreal, while NHL does. Causes key error if don't fix here.
-            if i == 7:
-                team['name'] = 'Montreal Canadiens'
-                print(teams_object['teams'][i])
             teams[team['name']] = {'team id': team['id']}
 
         return teams
 
-    def parse_raw_boxscore(self, game_id):
+
+    def parse_player_game_stats(self, team_object, date=None):
+        week = self.get_week(date if date else self.current_date)
+        team = team_object['team']['name']
+        weekly_active_players = self.NHL_teams[team][week].keys()
+        roster = team_object['players']
+
+        for player in weekly_active_players:
+            print(player)
+            id = self.players[player]['NHL id']
+            #fantasy_team = self.teams['fantasy team']
+
+            if 'ID{}'.format(id) not in roster or id in team_object['scratches']:
+                continue
+            is_goalie = True if 'G' in self.players[player]['eligible positions'] else False
+            player_game_stats = roster['ID{}'.format(id)]['stats']['skaterStats' if not is_goalie else 'goalieStats']
+
+            self.teams[fantasy_team][week]['starters'][player][self.date_to_string(date)] = player_game_stats
+            pass
+
+    def parse_raw_boxscore(self, game_id, date=None):
         game_url = self.NHL_base_url + "/game/{}/boxscore".format(game_id)
         r = requests.get(game_url)
         game_json = json.dumps(r.json(), indent=4)
         game_object = json.loads(game_json)
+
+        away_object = game_object['teams']['away']
+        home_object = game_object['teams']['home']
+
+        self.parse_player_game_stats(away_object, date)
+        self.parse_player_game_stats(home_object, date)
+
         pass
 
+    #
+    # def parse_raw_game(self, game_object):
+    #     game_dict = {}
+    #     game_dict['game id'] = game_object['gamePk']
+    #     game_dict['away team'] = game_object['teams']['away']['team']['name']
+    #     game_dict['home team'] = game_object['teams']['home']['team']['name']
+    #     return game_dict
 
     def parse_raw_daily_schedule(self, date=None):
         schedule_url = self.NHL_base_url + "/schedule"
         if date:
-            schedule_url += "?date={}".format(date)
+            schedule_url += "?date={}".format(self.date_to_string(date))
         r = requests.get(schedule_url)
         schedule_json = json.dumps(r.json(), indent=4)
         schedule_object = json.loads(schedule_json)
-        pass
+        if schedule_object['totalGames'] == 0:
+            return
+        games_list = schedule_object['dates'][0]['games']
+        for game_object in games_list:
+            if game_object['gameType'] != 'R':
+                continue
+            game_id = game_object['gamePk']
+            self.parse_raw_boxscore(game_id, date)
 
 
 if __name__ == "__main__":
