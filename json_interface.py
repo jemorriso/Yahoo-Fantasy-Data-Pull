@@ -19,6 +19,8 @@ class Json_Interface():
                 league_object['NHL teams'] = fantasy_league.NHL_teams
 
         self.write_json(league_object, league_json)
+        pass
+
 
 
     def restore_league_from_json(self, fantasy_league, league_json, NHL=False):
@@ -34,6 +36,20 @@ class Json_Interface():
                 fantasy_league.NHL_teams = league_object['NHL teams']
 
         return fantasy_league
+
+
+
+    def dump_stats(self, fantasy_league, stats_json):
+        stats_object = {}
+        stats_object['team stats'] = fantasy_league.team_stats
+        self.write_json(stats_object, stats_json)
+
+
+    def restore_stats(self, fantasy_league, stats_json):
+        stats_object = self.read_json(stats_json)
+        fantasy_league.team_stats = stats_object['team stats']
+        return fantasy_league
+
 
     def write_json(self, python_object, json_file):
         with open(json_file, "w+") as write_file:

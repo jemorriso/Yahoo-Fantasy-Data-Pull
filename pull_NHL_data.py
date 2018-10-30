@@ -11,7 +11,7 @@ class NHL_Data(Yahoo_League_Data):
         Yahoo_League_Data.__init__(self, league_url, fantasy_url, creds_file)
         self.NHL_teams = None
         self.NHL_base_url = "https://statsapi.web.nhl.com/api/v1/"
-
+        self.NHL_start_date = self.start_date + datetime.timedelta(days=2)
 
     # We should not be duplicating data! I need to make a master player list
     # this will be helpful for seeing if a trade has happened
