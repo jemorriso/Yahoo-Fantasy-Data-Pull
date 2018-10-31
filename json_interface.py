@@ -42,6 +42,7 @@ class Json_Interface():
     def dump_stats(self, fantasy_league, stats_json):
         stats_object = {}
         stats_object['team stats'] = fantasy_league.team_stats
+        stats_object['master categories'] = fantasy_league.master_categories
         self.write_json(stats_object, stats_json)
 
 
