@@ -43,18 +43,25 @@ class Json_Interface():
         stats_object = {}
         stats_object['team stats'] = fantasy_league.team_stats
         stats_object['master categories'] = fantasy_league.master_categories
+        stats_object['dates'] = fantasy_league.dates
+        stats_object['graph data'] = fantasy_league.graph_data
+        stats_object['team themes'] = fantasy_league.team_themes
         self.write_json(stats_object, stats_json)
 
 
     def restore_stats(self, fantasy_league, stats_json):
         stats_object = self.read_json(stats_json)
         fantasy_league.team_stats = stats_object['team stats']
+        fantasy_league.master_categories = stats_object['master categories']
+        fantasy_league.dates = stats_object['dates']
+        fantasy_league.graph_data = stats_object['graph data']
+        fantasy_league.team_themes = stats_object['team themes']
         return fantasy_league
 
 
     def write_json(self, python_object, json_file):
         with open(json_file, "w+") as write_file:
-            json.dump(python_object, write_file, indent=4)
+            json.dump(python_object, write_file, indent=2, sort_keys=True)
 
 
     def append_json(self, python_object, json_file):

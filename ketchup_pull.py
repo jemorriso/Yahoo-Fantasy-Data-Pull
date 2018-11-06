@@ -33,8 +33,9 @@ def get_NHL(no_rest_for_fleury):
     no_rest_for_fleury = my_json.restore_league_from_json(no_rest_for_fleury, league_json, NHL=True)
     no_rest_for_fleury.NHL_teams = no_rest_for_fleury.parse_raw_NHL_teams()
 
-    my_date = no_rest_for_fleury.start_date
-    current_date = datetime.date.today()
+    my_date = no_rest_for_fleury.start_date + datetime.timedelta(days=2)
+    current_date = no_rest_for_fleury.current_date
+
 
     query_dates = sorted(no_rest_for_fleury.weekly_start_dates)
     while my_date < current_date:
@@ -95,7 +96,7 @@ if __name__=="__main__":
 
     no_rest_for_fleury = Yahoo_League_Data(league_url, base_url, creds_json)
     initial_yahoo_pull(no_rest_for_fleury)
-    #get_yahoo(no_rest_for_fleury)
+    get_yahoo(no_rest_for_fleury)
 
     no_rest_for_fleury = NHL_Data(league_url, base_url, creds_json)
     get_NHL(no_rest_for_fleury)

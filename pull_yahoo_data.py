@@ -7,7 +7,7 @@ import datetime
 class Yahoo_League_Data():
     def __init__(self, league_url, fantasy_url, creds_file):
         self.oauth = self.get_oauth_session("http://fantasysports.yahooapis.com/", creds_file)
-        self.league = {'league info': self.parse_raw_league_data(league_url)}
+        self.league = {'league info': self.parse_raw_league_data(league_url), 'scoring categories': {}}
         self.league_url = league_url
         self.fantasy_url = fantasy_url
 

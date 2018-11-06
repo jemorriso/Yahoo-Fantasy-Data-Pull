@@ -171,7 +171,6 @@ if __name__ == "__main__":
 
     # recreate league from stored info rather than querying server each time
     no_rest_for_fleury = my_json.restore_league_from_json(no_rest_for_fleury, league_json, NHL=True)
-    no_rest_for_fleury.mass_parse_player_ids()
 
     pass
 

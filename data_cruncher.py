@@ -15,6 +15,11 @@ class Data_Cruncher(NHL_Data):
 
         self.master_categories = {}
 
+        self.graph_data = {}
+
+        self.dates = {}
+
+        self.team_themes = {}
 
     def build_skeleton(self, player_types, length):
         stats_dict = {}
@@ -32,6 +37,12 @@ class Data_Cruncher(NHL_Data):
                     stats_dict[team][type][cat] = [0]*(length)
 
         return stats_dict
+
+    def build_themes_dict(self):
+        theme_dict = {}
+        for team in self.teams.keys():
+            theme_dict[team] = {'font': "", 'colour': ""}
+        return theme_dict
 
     def gen_categories_dict(self):
         categories_dict = {'boxscore': {}, 'other': []}
@@ -124,6 +135,37 @@ class Data_Cruncher(NHL_Data):
         return team_dict
 
 
+    def gen_dates_list(self, start_date, end_date):
+        num_days = (end_date - start_date).days
+        return [start_date + datetime.timedelta(days=x) for x in range(0, num_days)]
+
+
+    def gen_cumulative_data_list(self, team, player_type, stat):
+        sum = 0
+        data_list = []
+        for datapoint in self.team_stats[team][player_type][stat]:
+            data_list.append(sum + datapoint)
+            sum += datapoint
+
+        return data_list
+
+    def gen_team_themes(self):
+        colours_dict = {"Chabot Shalom": "#0038b8",         # israeli flag blue
+                        "Easy Kreider": "#002868",          # american flag blue
+                        "Hotline Kling": "#bae1ff",         # pastel blue
+                        "Jeremy Morrison": "#6F2DA8",       # grape
+                        "Just a Quickie": "#B2F302",        # lime
+                        "Malkin My Way DT": "#FFB612",      # pittsburgh steelers gold
+                        "Marchand did 9/11": "#58595B",     # smokey grey
+                        "MyFreeCams Talbot": "#008000",     # green
+                        "Papa D's hot sawce": "#FF8C00",    # habanero orange
+                        "Phil Special": "#c68958",          # bread colour
+                        "Red Light District": "#e9241d",    # fire engine red
+                        "half clapper": "#0A7E8C"           # metallic seaweed
+                        }
+        for team in colours_dict:
+            self.team_themes[team]['colour'] = colours_dict[team]
+
 
 if __name__ == "__main__":
     league_url = 'https://fantasysports.yahooapis.com/fantasy/v2/leagues;league_keys=nhl.l.8681'
@@ -141,11 +183,8 @@ if __name__ == "__main__":
     fleury_stats = Data_Cruncher(league_url, base_url, creds_json)
     my_json.restore_league_from_json(fleury_stats, league_json, NHL=True)
 
+    my_json.restore_stats(fleury_stats, stats_json)
 
-    fleury_stats.master_categories = fleury_stats.gen_categories_dict()
-
-    player_types = ['skater', 'goalie']
-    fleury_stats.team_stats = fleury_stats.build_skeleton(player_types, fleury_stats.date_to_int(fleury_stats.current_date))
 
 
     my_date = fleury_stats.NHL_start_date
@@ -161,7 +200,34 @@ if __name__ == "__main__":
             pass
         my_date += datetime.timedelta(days=1)
 
-    print("v")
 
+    for category in fleury_stats.master_categories['boxscore']['skater']:
+        fleury_stats.graph_data[category] = {}
+        for team in fleury_stats.teams.keys():
+            fleury_stats.graph_data[category][team] = fleury_stats.gen_cumulative_data_list(team, 'skater', category)
+
+
+    #
+    # fleury_stats.team_themes = fleury_stats.build_themes_dict()
+    # fleury_stats.gen_team_themes()
+    #
+    # fleury_stats.master_categories = fleury_stats.gen_categories_dict()
+    #
+    # player_types = ['skater', 'goalie']
+    # fleury_stats.team_stats = fleury_stats.build_skeleton(player_types, fleury_stats.date_to_int(fleury_stats.current_date))
+    #
+    #
+
+    #
+    # date_list = fleury_stats.gen_dates_list(fleury_stats.NHL_start_date, fleury_stats.current_date-datetime.timedelta(days=1))
+    # fleury_stats.dates = [fleury_stats.date_to_string(date) for date in date_list]
+    #
+    #
+    #
+    # fleury_stats.graph_data['goals'] = {}
+    # for team in fleury_stats.teams.keys():
+    #     fleury_stats.graph_data['goals'][team] = fleury_stats.gen_cumulative_data_list(team, 'skater', 'goals')
+    #
+    #
     my_json.dump_stats(fleury_stats, stats_json)
     pass
