@@ -1,5 +1,5 @@
 import json
-from json_interface import Json_Interface
+from utils import Json_Interface
 from pathlib import Path
 import requests
 from pull_yahoo_data import Yahoo_League_Data

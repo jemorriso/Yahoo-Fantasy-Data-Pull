@@ -1,0 +1,431 @@
+{
+  "Anaheim Ducks": {
+    "players": [
+      "Adam Henrique",
+      "John Gibson",
+      "Josh Manson",
+      "Nick Ritchie",
+      "Rickard Rakell",
+      "Ryan Getzlaf",
+      "Hampus Lindholm",
+      "Ryan Kesler",
+      "Max Comtois",
+      "Cam Fowler",
+      "Ondrej Kase"
+    ],
+    "team_id": 24
+  },
+  "Arizona Coyotes": {
+    "players": [
+      "Antti Raanta",
+      "Clayton Keller",
+      "Derek Stepan",
+      "Jakob Chychrun",
+      "Oliver Ekman-Larsson",
+      "Dylan Strome",
+      "Alex Galchenyuk"
+    ],
+    "team_id": 53
+  },
+  "Boston Bruins": {
+    "players": [
+      "Brad Marchand",
+      "Charlie McAvoy",
+      "David Backes",
+      "David Pastrnak",
+      "Jake DeBrusk",
+      "Patrice Bergeron",
+      "Ryan Donato",
+      "Torey Krug",
+      "Tuukka Rask",
+      "Jaroslav Halak"
+    ],
+    "team_id": 6
+  },
+  "Buffalo Sabres": {
+    "players": [
+      "Carter Hutton",
+      "Jeff Skinner",
+      "Rasmus Dahlin",
+      "Rasmus Ristolainen",
+      "Sam Reinhart",
+      "Jack Eichel",
+      "Kyle Okposo",
+      "Jason Pominville",
+      "Linus Ullmark"
+    ],
+    "team_id": 7
+  },
+  "Calgary Flames": {
+    "players": [
+      "Elias Lindholm",
+      "James Neal",
+      "Johnny Gaudreau",
+      "Mark Giordano",
+      "Matthew Tkachuk",
+      "Mikael Backlund",
+      "Mike Smith",
+      "Sean Monahan",
+      "Noah Hanifin",
+      "David Rittich"
+    ],
+    "team_id": 20
+  },
+  "Carolina Hurricanes": {
+    "players": [
+      "Andrei Svechnikov",
+      "Dougie Hamilton",
+      "Justin Faulk",
+      "Sebastian Aho",
+      "Teuvo Teravainen",
+      "Micheal Ferland",
+      "Jordan Staal",
+      "Justin Williams",
+      "Scott Darling"
+    ],
+    "team_id": 12
+  },
+  "Chicago Blackhawks": {
+    "players": [
+      "Alex DeBrincat",
+      "Brandon Saad",
+      "Jonathan Toews",
+      "Patrick Kane",
+      "Chris Kunitz",
+      "Brent Seabrook",
+      "Nick Schmaltz",
+      "Corey Crawford",
+      "Duncan Keith",
+      "Henri Jokiharju"
+    ],
+    "team_id": 16
+  },
+  "Colorado Avalanche": {
+    "players": [
+      "Erik Johnson",
+      "Gabriel Landeskog",
+      "Mikko Rantanen",
+      "Nathan MacKinnon",
+      "Nikita Zadorov",
+      "Semyon Varlamov",
+      "Tyson Barrie"
+    ],
+    "team_id": 21
+  },
+  "Columbus Blue Jackets": {
+    "players": [
+      "Artemi Panarin",
+      "Nick Foligno",
+      "Pierre-Luc Dubois",
+      "Sergei Bobrovsky",
+      "Zach Werenski",
+      "Cam Atkinson",
+      "Oliver Bjorkstrand",
+      "Seth Jones",
+      "Boone Jenner"
+    ],
+    "team_id": 29
+  },
+  "Dallas Stars": {
+    "players": [
+      "Alexander Radulov",
+      "Ben Bishop",
+      "Jamie Benn",
+      "John Klingberg",
+      "Tyler Seguin",
+      "Miro Heiskanen",
+      "Jason Spezza"
+    ],
+    "team_id": 25
+  },
+  "Detroit Red Wings": {
+    "players": [
+      "Anthony Mantha",
+      "Dylan Larkin",
+      "Tyler Bertuzzi",
+      "Gustav Nyquist"
+    ],
+    "team_id": 17
+  },
+  "Edmonton Oilers": {
+    "players": [
+      "Adam Larsson",
+      "Cam Talbot",
+      "Connor McDavid",
+      "Darnell Nurse",
+      "Kailer Yamamoto",
+      "Leon Draisaitl",
+      "Milan Lucic",
+      "Oscar Klefbom",
+      "Ryan Nugent-Hopkins",
+      "Jesse Puljujarvi",
+      "Ty Rattie"
+    ],
+    "team_id": 22
+  },
+  "Florida Panthers": {
+    "players": [
+      "Aaron Ekblad",
+      "Aleksander Barkov",
+      "Evgenii Dadonov",
+      "Jonathan Huberdeau",
+      "Keith Yandle",
+      "Mike Hoffman",
+      "Roberto Luongo",
+      "Vincent Trocheck",
+      "James Reimer",
+      "Nick Bjugstad",
+      "Mike Matheson"
+    ],
+    "team_id": 13
+  },
+  "Los Angeles Kings": {
+    "players": [
+      "Alec Martinez",
+      "Anze Kopitar",
+      "Drew Doughty",
+      "Dustin Brown",
+      "Ilya Kovalchuk",
+      "Jake Muzzin",
+      "Jeff Carter",
+      "Jonathan Quick",
+      "Tyler Toffoli"
+    ],
+    "team_id": 26
+  },
+  "Minnesota Wild": {
+    "players": [
+      "Alex Stalock",
+      "Charlie Coyle",
+      "Devan Dubnyk",
+      "Eric Staal",
+      "Jason Zucker",
+      "Matt Dumba",
+      "Mikael Granlund",
+      "Ryan Suter",
+      "Nino Niederreiter",
+      "Zach Parise"
+    ],
+    "team_id": 30
+  },
+  "Montr\u00e9al Canadiens": {
+    "players": [
+      "Brendan Gallagher",
+      "Carey Price",
+      "Max Domi",
+      "Jeff Petry",
+      "Jonathan Drouin",
+      "Tomas Tatar"
+    ],
+    "team_id": 8
+  },
+  "Nashville Predators": {
+    "players": [
+      "Craig Smith",
+      "Filip Forsberg",
+      "Kevin Fiala",
+      "P.K. Subban",
+      "Pekka Rinne",
+      "Ryan Ellis",
+      "Ryan Johansen",
+      "Viktor Arvidsson",
+      "Kyle Turris",
+      "Roman Josi",
+      "Juuse Saros",
+      "Mattias Ekholm"
+    ],
+    "team_id": 18
+  },
+  "New Jersey Devils": {
+    "players": [
+      "Keith Kinkaid",
+      "Kyle Palmieri",
+      "Taylor Hall",
+      "Nico Hischier",
+      "Will Butcher"
+    ],
+    "team_id": 1
+  },
+  "New York Islanders": {
+    "players": [
+      "Anders Lee",
+      "Anthony Beauvillier",
+      "Jordan Eberle",
+      "Mathew Barzal",
+      "Nick Leddy",
+      "Ryan Pulock",
+      "Josh Bailey"
+    ],
+    "team_id": 2
+  },
+  "New York Rangers": {
+    "players": [
+      "Chris Kreider",
+      "Henrik Lundqvist",
+      "Kevin Shattenkirk",
+      "Mats Zuccarello",
+      "Mika Zibanejad",
+      "Brady Skjei",
+      "Neal Pionk"
+    ],
+    "team_id": 3
+  },
+  "Ottawa Senators": {
+    "players": [
+      "Cody Ceci",
+      "Matt Duchene",
+      "Mark Stone",
+      "Thomas Chabot",
+      "Mark Borowiecki",
+      "Ryan Dzingel",
+      "Craig Anderson",
+      "Drake Batherson"
+    ],
+    "team_id": 9
+  },
+  "Philadelphia Flyers": {
+    "players": [
+      "Brian Elliott",
+      "Claude Giroux",
+      "Ivan Provorov",
+      "Jakub Voracek",
+      "Radko Gudas",
+      "Robert Hagg",
+      "Sean Couturier",
+      "Shayne Gostisbehere",
+      "Travis Konecny",
+      "Wayne Simmonds",
+      "Nolan Patrick",
+      "James van Riemsdyk"
+    ],
+    "team_id": 4
+  },
+  "Pittsburgh Penguins": {
+    "players": [
+      "Evgeni Malkin",
+      "Jake Guentzel",
+      "Justin Schultz",
+      "Patric Hornqvist",
+      "Phil Kessel",
+      "Sidney Crosby",
+      "Kris Letang",
+      "Matt Murray",
+      "Jack Johnson"
+    ],
+    "team_id": 5
+  },
+  "San Jose Sharks": {
+    "players": [
+      "Brent Burns",
+      "Erik Karlsson",
+      "Evander Kane",
+      "Joe Pavelski",
+      "Joe Thornton",
+      "Logan Couture",
+      "Marc-Edouard Vlasic",
+      "Martin Jones",
+      "Timo Meier",
+      "Tomas Hertl",
+      "Aaron Dell"
+    ],
+    "team_id": 28
+  },
+  "St. Louis Blues": {
+    "players": [
+      "Alex Pietrangelo",
+      "Colton Parayko",
+      "Jaden Schwartz",
+      "Pat Maroon",
+      "Ryan O'Reilly",
+      "Vladimir Tarasenko",
+      "Jake Allen",
+      "Brayden Schenn"
+    ],
+    "team_id": 19
+  },
+  "Tampa Bay Lightning": {
+    "players": [
+      "Andrei Vasilevskiy",
+      "Brayden Point",
+      "J.T. Miller",
+      "Mikhail Sergachev",
+      "Nikita Kucherov",
+      "Ondrej Palat",
+      "Steven Stamkos",
+      "Victor Hedman",
+      "Yanni Gourde",
+      "Ryan McDonagh"
+    ],
+    "team_id": 14
+  },
+  "Toronto Maple Leafs": {
+    "players": [
+      "Auston Matthews",
+      "Frederik Andersen",
+      "Jake Gardiner",
+      "John Tavares",
+      "Mitchell Marner",
+      "Morgan Rielly",
+      "Nazem Kadri",
+      "Patrick Marleau",
+      "Kasperi Kapanen",
+      "Zach Hyman"
+    ],
+    "team_id": 10
+  },
+  "Vancouver Canucks": {
+    "players": [
+      "Alexander Edler",
+      "Bo Horvat",
+      "Brock Boeser",
+      "Elias Pettersson",
+      "Michael Del Zotto",
+      "Jacob Markstrom",
+      "Sven Baertschi",
+      "Jake Virtanen"
+    ],
+    "team_id": 23
+  },
+  "Vegas Golden Knights": {
+    "players": [
+      "Colin Miller",
+      "Jonathan Marchessault",
+      "Marc-Andre Fleury",
+      "Reilly Smith",
+      "William Karlsson",
+      "Max Pacioretty",
+      "Shea Theodore",
+      "Brayden McNabb",
+      "Alex Tuch"
+    ],
+    "team_id": 54
+  },
+  "Washington Capitals": {
+    "players": [
+      "Alex Ovechkin",
+      "Braden Holtby",
+      "Evgeny Kuznetsov",
+      "John Carlson",
+      "Nicklas Backstrom",
+      "T.J. Oshie",
+      "Tom Wilson",
+      "Matt Niskanen"
+    ],
+    "team_id": 15
+  },
+  "Winnipeg Jets": {
+    "players": [
+      "Blake Wheeler",
+      "Connor Hellebuyck",
+      "Dustin Byfuglien",
+      "Jacob Trouba",
+      "Josh Morrissey",
+      "Mark Scheifele",
+      "Nikolaj Ehlers",
+      "Patrik Laine",
+      "Kyle Connor",
+      "Adam Lowry"
+    ],
+    "team_id": 52
+  }
+}

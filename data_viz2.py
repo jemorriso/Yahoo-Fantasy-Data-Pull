@@ -1,5 +1,5 @@
 import json
-from json_interface import Json_Interface
+from utils import Json_Interface
 from pathlib import Path
 from data_cruncher import Data_Cruncher
 import datetime
