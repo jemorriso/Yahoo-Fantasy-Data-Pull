@@ -1,6 +1,6 @@
-NHL-Data/
-
-Yahoo-Data/
-
+NHL-data/
+Yahoo-data/
+templates/
 static/
-templates
+__pycache__/
+.idea/
