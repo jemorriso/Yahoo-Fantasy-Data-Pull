@@ -1,48 +1,35 @@
-import json
-from utils import Json_Interface
-from pathlib import Path
-import requests
-from pull_yahoo_data import Yahoo_League_Data
-from pull_NHL_data import NHL_Data
-import datetime
-import time
+# import json
+# from utils import Json_Interface
+# from pathlib import Path
+# import requests
+# from pull_yahoo_data import Yahoo_League_Data
+
+from datetime import timedelta
+
+import NHL_Yahoo
+from utils import Date_Utils
+
+class Data_Cruncher():
+    # constructor style factors in the fact that oftentimes we restore rather than create all new attributes.
+    def __init__(self, **kwargs):
+        # we only need one dictionary here; the entire object can be stored and loaded to / from JSON
+        self.crunch_dict = {}
 
 
-class Data_Cruncher(NHL_Data):
-    def __init__(self, league_url, fantasy_url, creds_file):
-        NHL_Data.__init__(self, league_url, fantasy_url, creds_file)
-        self.team_stats = {}
-
-        self.master_categories = {}
-
-        self.graph_data = {}
-
-        self.dates = {}
-
-        self.team_themes = {}
-
-    def build_skeleton(self, player_types, length):
-        stats_dict = {}
-        skater_cats = self.master_categories['boxscore']['skater']
-        goalie_cats = self.master_categories['boxscore']['goalie']
-        for team in self.teams.keys():
-            stats_dict[team] = {}
-            for type in player_types:
-                stats_dict[team][type] = {}
-                if type == 'skater':
-                    cats = skater_cats
-                else:
-                    cats = goalie_cats
-                for cat in cats:
-                    stats_dict[team][type][cat] = [0]*(length)
+    # this function gets called whenever a new week is to be tallied; it generates the template for each week's tally
+    def build_weekly_stats_dict(self):
+        stats_dict = {'got_dates': [], 'teams': {}}
+        skater_cats = self.crunch_dict['master_categories']['boxscore']['skater']
+        goalie_cats = self.crunch_dict['master_categories']['boxscore']['goalie']
+        for team in self.crunch_dict['teams']:
+            stats_dict['teams'][team] = {'skater': {}, 'goalie': {}}
+            for cat in skater_cats:
+                stats_dict['teams'][team]['skater'][cat] = [0]*7
+            for cat in goalie_cats:
+                stats_dict['teams'][team]['goalie'][cat] = [0]*7
 
         return stats_dict
 
-    def build_themes_dict(self):
-        theme_dict = {}
-        for team in self.teams.keys():
-            theme_dict[team] = {'font': "", 'colour': ""}
-        return theme_dict
 
     def gen_categories_dict(self):
         categories_dict = {'boxscore': {}, 'other': []}
@@ -84,70 +71,39 @@ class Data_Cruncher(NHL_Data):
                 #"powerPlaySavePercentage",
                 #"evenStrengthSavePercentage"
         ]
-        categories_dict['other'] = ['points', 'games played', 'power play points' 'short-handed points']
+        categories_dict['other'] = ['points', 'games played', 'power play points', 'short-handed points']
 
         return categories_dict
 
 
-    def date_to_int(self, date):
-        return (date - self.NHL_start_date).days
+    def gen_cumulative_data_dict(self):
+        data_dict = {'teams': {}, 'last_date': None}
 
-    def int_to_date(self, num):
-        return self.NHL_start_date + datetime.timedelta(days=num)
+        # create the cumulative data lists
+        categories_list = self.crunch_dict['master_categories']['boxscore']['skater'] + self.crunch_dict['master_categories']['boxscore']['goalie']
+        data_dict['categories'] = categories_list
 
-    def daily_update_team_stats(self, team, player_type, category, date=None):
-        if not date:
-            date = self.current_date()
+        for team in self.crunch_dict['teams']:
+            data_dict['teams'][team] = {}
+            for category in categories_list:
+                # initialize an empty list for each category
+                data_dict['teams'][team][category] = []
 
-        daily_count = 0
-        for week in self.teams[team]:
-            if week == 'yahoo key':
-                continue
-            for player in self.teams[team][week]['starters']:
-                if player_type == 'goalie' and 'G' not in self.players[player]['eligible positions']:
-                    continue
-                if player_type == 'skater' and 'G' in self.players[player]['eligible positions']:
-                    continue
-                if self.date_to_string(date) in self.teams[team][week]['starters'][player]:
-                    count = self.teams[team][week]['starters'][player][self.date_to_string(date)][category]
-                    daily_count += count
-                    print(f"{player} made {daily_count} {category} on {date}")
-                    #time.sleep(0.05)
-                    pass
+        return data_dict
 
 
-        return daily_count
+    # def gen_teams_dict(self):
+    #     self.gen_team_themes()
+    #
+    #     # create the cumulative data lists
+    #     categories_list = self.crunch_dict['master_categories']['boxscore']['skater'] + self.crunch_dict['master_categories']['boxscore']['goalie']
+    #     for team in self.crunch_dict['teams']:
+    #         self.crunch_dict['teams'][team]['cumulative_data'] = {}
+    #         for category in categories_list:
+    #             # initialize an empty list for each category
+    #             self.crunch_dict['teams'][team]['cumulative_data'][category] = []
 
 
-    # for now I just want goals, but I will need to pass in a dict of categories to query each run through
-    def daily_update_all_teams_stats(self, player_type, categories, date=None):
-        if not date:
-            date = self.current_date()
-
-        team_dict = {}
-        for team in self.teams:
-            team_dict[team] = {player_type: {}}
-
-        for category in categories:
-            for team in self.teams:
-                team_dict[team][player_type][category] = self.daily_update_team_stats(team, player_type, category, date)
-
-        return team_dict
-
-
-    def gen_dates_list(self, start_date, end_date):
-        num_days = (end_date - start_date).days
-        return [start_date + datetime.timedelta(days=x) for x in range(0, num_days)]
-
-
-    def gen_cumulative_data_list(self, team, player_type, stat):
-        sum = 0
-        data_list = []
-        for datapoint in self.team_stats[team][player_type][stat]:
-            data_list.append(sum + datapoint)
-            sum += datapoint
-
-        return data_list
 
     def gen_team_themes(self):
         colours_dict = {"Chabot Shalom": "#0038b8",         # israeli flag blue
@@ -164,70 +120,95 @@ class Data_Cruncher(NHL_Data):
                         "half clapper": "#0A7E8C"           # metallic seaweed
                         }
         for team in colours_dict:
-            self.team_themes[team]['colour'] = colours_dict[team]
+            self.crunch_dict['teams'][team]['colour'] = colours_dict[team]
 
 
-if __name__ == "__main__":
-    league_url = 'https://fantasysports.yahooapis.com/fantasy/v2/leagues;league_keys=nhl.l.8681'
-    base_url = 'https://fantasysports.yahooapis.com/fantasy/v2'
+    def append_cumulative_data_lists(self, league_start_date, my_date):
+        # we're trying to add and the data isn't there so try to create it
+        if 'last_date' not in self.crunch_dict['cumulative_data']:
+            self.gen_cumulative_lists_from_weeks(league_start_date, my_date)
 
-    git_dir = Path.cwd()
-    json_dir = git_dir / 'JSON_data'
-    creds_json = json_dir / 'oauth_creds.json'
-    league_json = json_dir / 'master_league_data.json'
-    stats_json = json_dir / 'master_data_crunch.json'
+        # its possible that we're trying to append up to a date that has already been calculated
+        elif my_date < self.crunch_dict['cumulative_data']['last_date']:
+            print(f"no need to generate cumulative data up to {my_date} - cumulative data up to {self.crunch_dict['cumulative_data']['last_date']} already generated.")
 
-    my_json = Json_Interface(json_dir)
-
-
-    fleury_stats = Data_Cruncher(league_url, base_url, creds_json)
-    my_json.restore_league_from_json(fleury_stats, league_json, NHL=True)
-
-    my_json.restore_stats(fleury_stats, stats_json)
+        # there is data that needs to be appended, and data driver has ensured that the weekly data is available
+        else:
 
 
 
-    my_date = fleury_stats.NHL_start_date
+    def gen_cumulative_data_list(self, tally_list):
+        sum = 0
+        data_list = []
+        for datapoint in tally_list:
+            data_list.append(sum + datapoint)
+            sum += datapoint
+
+        return data_list
 
 
-    while my_date < fleury_stats.current_date:
-        for player_type, categories in fleury_stats.master_categories['boxscore'].items():
-            daily_dict = fleury_stats.daily_update_all_teams_stats(player_type, categories, my_date)
+    def gen_cumulative_lists_from_weeks(self, league_start_date, my_date):
 
-            for team in fleury_stats.team_stats:
-                for category in categories:
-                    fleury_stats.team_stats[team][player_type][category][fleury_stats.date_to_int(my_date)] = daily_dict[team][player_type][category]
-            pass
-        my_date += datetime.timedelta(days=1)
+        # need to check that all dates up to start of date range / query date have been previously calculated
+        # if dates up to start haven't been calculated, raise exception, since the cumulative tally won't make any sense
+        self.check_tallied_dates(league_start_date, my_date)
+
+        for category in self.crunch_dict['cumulative_data']['categories']:
+            is_goalie = False
+            if category in self.crunch_dict['master_categories']['boxscore']['goalie']:
+                is_goalie = True
+            for team in self.crunch_dict['teams']:
+                assembled_weekly_list = []
+                for week in self.crunch_dict['weeks']:
+                    assembled_weekly_list.extend(self.crunch_dict['weeks'][week]['teams'][team]['skater' if not is_goalie else 'goalie'][category])
+
+                # when we do weekly tallies, use day of week to determine index
+                # NHL starts on a wednesday, so here we trim the first 2 leading zeroes away
+                assembled_weekly_list = assembled_weekly_list[2:]
+                # we also need to trim the end away since there may be trailing zeroes if entire week hasn't been filled in
+                my_date_index = Date_Utils.date_to_int(league_start_date, my_date)
+                assembled_weekly_list = assembled_weekly_list[:my_date_index+1]
+                # add up all the numbers
+                self.crunch_dict['cumulative_data']['teams'][team][category] = self.gen_cumulative_data_list(assembled_weekly_list)
+                pass
+
+        # if we got here it was successful, and we can safely say we have cumulative data up to the query date
+        self.crunch_dict['cumulative_data']['last_date'] = Date_Utils.date_to_string(my_date)
 
 
-    for category in fleury_stats.master_categories['boxscore']['skater']:
-        fleury_stats.graph_data[category] = {}
-        for team in fleury_stats.teams.keys():
-            fleury_stats.graph_data[category][team] = fleury_stats.gen_cumulative_data_list(team, 'skater', category)
+    def daily_update_teams_stats(self, nhl_yahoo_object, my_date):
+        week = nhl_yahoo_object.get_week(my_date)
+        day_of_week = my_date.weekday()
+        my_date_string = Date_Utils.date_to_string(my_date)
+
+        for team in nhl_yahoo_object.weeks[week]['teams']:
+            for player in nhl_yahoo_object.weeks[week]['teams'][team]['starters']:
+                if my_date_string in nhl_yahoo_object.weeks[week]['teams'][team]['starters'][player]:
+                    is_goalie = True if nhl_yahoo_object.weeks[week]['teams'][team]['starters'][player]['active_position'] == 'G' else False
+                    if not is_goalie:
+                        for category in self.crunch_dict['master_categories']['boxscore']['skater']:
+                            self.crunch_dict['weeks'][week]['teams'][team]['skater'][category][day_of_week] += nhl_yahoo_object.weeks[week]['teams'][team]['starters'][player][my_date_string][category]
+
+                    else:
+                        for category in self.crunch_dict['master_categories']['boxscore']['goalie']:
+                            self.crunch_dict['weeks'][week]['teams'][team]['goalie'][category][day_of_week] += nhl_yahoo_object.weeks[week]['teams'][team]['starters'][player][my_date_string][category]
 
 
-    #
-    # fleury_stats.team_themes = fleury_stats.build_themes_dict()
-    # fleury_stats.gen_team_themes()
-    #
-    # fleury_stats.master_categories = fleury_stats.gen_categories_dict()
-    #
-    # player_types = ['skater', 'goalie']
-    # fleury_stats.team_stats = fleury_stats.build_skeleton(player_types, fleury_stats.date_to_int(fleury_stats.current_date))
-    #
-    #
+    def check_tallied_dates(self, league_start_date, check_date):
+        # build a list of all the tallied dates
+        all_got_dates = []
+        for week in self.crunch_dict['weeks']:
+            all_got_dates.extend(self.crunch_dict['weeks'][week]['got_dates'])
 
-    #
-    # date_list = fleury_stats.gen_dates_list(fleury_stats.NHL_start_date, fleury_stats.current_date-datetime.timedelta(days=1))
-    # fleury_stats.dates = [fleury_stats.date_to_string(date) for date in date_list]
-    #
-    #
-    #
-    # fleury_stats.graph_data['goals'] = {}
-    # for team in fleury_stats.teams.keys():
-    #     fleury_stats.graph_data['goals'][team] = fleury_stats.gen_cumulative_data_list(team, 'skater', 'goals')
-    #
-    #
-    my_json.dump_stats(fleury_stats, stats_json)
-    pass
+        all_got_dates = [Date_Utils.string_to_date(date_string) for date_string in sorted(all_got_dates)]
+
+        # build a list of all dates from league start date
+        all_check_dates = Date_Utils.gen_dates_list(league_start_date, check_date+timedelta(days=1))
+
+        # if there isn't an unbroken chain til the check_date, we can't tally cumulative data.
+        # it doesn't really make sense to fill it all in, since that might not be what is desired.
+        # so just raise an error and decide what to do after.
+        for date_obj in all_check_dates:
+            if date_obj not in all_got_dates:
+                raise AssertionError("Not all dates up to {} have been tallied. Call data driver with date range {},{}".format(check_date, league_start_date, check_date))
+

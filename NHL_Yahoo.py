@@ -3,7 +3,8 @@ from datetime import timedelta
 import requests
 import json
 
-# class loads in stored data from JSON, utilizes NHL_data class, and then dumps the result back to same file
+# class loads in stored data from JSON, utilizes NHL_data class, and then dumps the result back to same file        fleury_cruncher.check_tallied_dates(dates_obj)
+
 class NHL_Yahoo:
     # object needs to be initialized from stored JSON, since in its basic form it is just a Yahoo_League_Data object
     # choose not to have inheritance due to coupling and methods in Yahoo_League_Data that are strictly pertinent to that class
@@ -160,27 +161,6 @@ class NHL_Yahoo:
                     self.NHL_teams[self.players[player]['last_known_NHL_team']].remove(player)
                     self.NHL_teams[NHL_team].append(player)
                     self.players[player]['last_known_NHL_team'] = NHL_team
-
-
-
-        #
-        # week = self.get_week(date)
-        # team = team_object['team']['name']
-        # weekly_active_players = self.NHL_teams[team][week].keys()
-        # roster = team_object['players']
-        #
-        # for player in weekly_active_players:
-        #     print(player)
-        #     player_id = self.players[player]['NHL_id']
-        #     fantasy_team = self.players[player]['fantasy_team']
-        #
-        #     if 'ID{}'.format(player_id) not in roster or player_id in team_object['scratches']:
-        #         continue
-        #     is_goalie = True if 'G' in self.players[player]['eligible_positions'] else False
-        #     player_game_stats = roster['ID{}'.format(player_id)]['stats']['skaterStats' if not is_goalie else 'goalieStats']
-        #
-        #     self.weeks[week][fantasy_team]['starters'][player][Date_Utils.date_to_string(date)] = player_game_stats
-        #     pass
 
 
     def parse_raw_boxscore(self, game_id, date):
